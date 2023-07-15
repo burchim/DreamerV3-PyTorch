@@ -133,6 +133,17 @@ env_name=dmc-Acrobot-swingup python3 main.py -c configs/DreamerV3/dreamer_v3.py 
 
 <img src="media/atari100k/atari100k-up_n_down.png" width="18%"/> <img src="media/atari100k/median.png" width="18%"/> <img src="media/atari100k/mean.png" width="18%"/>
 
+### Atari Scores (200M env steps)
+
+| Task    | Random | Human | Record | Score |
+| -------- | ------- | ------- | ------- | ------- |
+| Env Steps | - | - | - | 200M |
+| Breakout | 2 | 30 | 864 | 370.5 |
+
+### Atari Figures
+
+<img src="media/atari/atari-breakout.png" width="18%"/>
+
 ## Acknowledgments
 
 Official DreamerV3 Implementation: [https://github.com/danijar/dreamerv3](https://github.com/danijar/dreamerv3)
