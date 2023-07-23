@@ -139,10 +139,11 @@ env_name=dmc-Acrobot-swingup python3 main.py -c configs/DreamerV3/dreamer_v3.py 
 | -------- | ------- | ------- | ------- | ------- |
 | Env Steps | - | - | - | 200M |
 | Breakout | 2 | 30 | 864 | 370.5 |
+| Montezuma Revenge | 0 | 4753 | 1219200 | 2520 |
 
 ### Atari Figures
 
-<img src="media/atari/atari-breakout.png" width="18%"/>
+<img src="media/atari/atari-breakout.png" width="18%"/> <img src="media/atari/atari-montezuma_revenge.png" width="18%"/>
 
 ## Acknowledgments
 
