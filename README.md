@@ -70,7 +70,7 @@ env_name=dmc-Acrobot-swingup python3 main.py -c configs/DreamerV3/dreamer_v3.py 
 | Walker Run | 683.8 |
 | Walker Stand | 983.4 |
 | Walker Walk | 961.7 |
-| Median | 758.6 | 
+| Median | 858.7 | 
 | Mean | 787.3 | 
 
 ### Visual Deep Mind Control Figures
