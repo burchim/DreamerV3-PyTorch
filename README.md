@@ -187,7 +187,7 @@ env_name=dmc-Acrobot-swingup python3 main.py -c configs/DreamerV3/dreamer_v3.py 
 | Task    | Random | Human | Record | Score |
 | -------- | ------- | ------- | ------- | ------- |
 | Env Steps | - | - | - | 200M |
-| Num envs | - | - | 8 |
+| Num envs | - | - | - | 8 |
 | Breakout | 2 | 30 | 864 | 370.5 |
 | Montezuma Revenge | 0 | 4753 | 1219200 | 2520 |
 
