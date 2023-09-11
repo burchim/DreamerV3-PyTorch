@@ -2,8 +2,6 @@
 
 PyTorch implementation of DreamerV3, [Mastering Diverse Domains through World Models](https://arxiv.org/abs/2301.04104). 
 
-Experiments on the minerl environment are in progress.
-
 <img src='media/dreamerv3.gif' width="75%"/>
 
 ## Installation
@@ -47,9 +45,12 @@ env_name=dmc-Acrobot-swingup python3 main.py -c configs/DreamerV3/dreamer_v3.py 
 
 ### Visual Deep Mind Control Scores (1M env steps)
 
+#### Scores
+
 | Task    | Score |
 | -------- | ------- |
 | Env Steps | 1M |
+| Num envs | 1 |
 | Acrobot Swingup | 458.7 | 
 | Cartpole Balance | 996.7 | 
 | Cartpole Balance Sparse | 1000.0 | 
@@ -73,7 +74,7 @@ env_name=dmc-Acrobot-swingup python3 main.py -c configs/DreamerV3/dreamer_v3.py 
 | Median | 858.7 | 
 | Mean | 787.3 | 
 
-### Visual Deep Mind Control Figures
+#### Figures
 
 <img src="media/dmc/dmc-Acrobot-swingup.png" width="18%"/> <img src="media/dmc/dmc-BallInCup-catch.png" width="18%"/> <img src="media/dmc/dmc-Cartpole-balance_sparse.png" width="18%"/> <img src="media/dmc/dmc-Cartpole-balance.png" width="18%"/> <img src="media/dmc/dmc-Cartpole-swingup_sparse.png" width="18%"/> 
 
@@ -85,11 +86,57 @@ env_name=dmc-Acrobot-swingup python3 main.py -c configs/DreamerV3/dreamer_v3.py 
 
 <img src="media/dmc/median.png" width="18%"/> <img src="media/dmc/mean.png" width="18%"/>
 
+### Visual Deep Mind Control Scores (5M env steps)
+
+#### Scores
+
+| Task    | Score |
+| -------- | ------- |
+| Env Steps | 5M |
+| Num envs | 4 |
+| Acrobot Swingup | 411.2 | 
+| Cartpole Balance | 999.2 | 
+| Cartpole Balance Sparse | 1000.0 | 
+| Cartpole Swingup | 866.7 |
+| Cartpole Swingup Sparse | 841.2 | 
+| Cheetah Run | 916.1 |
+| Cup Catch | 967.5 |
+| Finger Spin | 388.9 |
+| Finger Turn Easy | 823.3 |
+| Finger Turn Hard | 896.6 |
+| Hopper Hop | 640.2 |
+| Hopper Stand | 942.9 |
+| Pendulum Swingup | 793.6 |
+| Quadruped Run | 918.2 | 
+| Quadruped Walk | 940.7 |
+| Reacher Easy | 972.9 |
+| Reacher Hard | 974.9 |
+| Walker Run | 827.0 |
+| Walker Stand | 986.0 |
+| Walker Walk | 973.3 |
+| Median | 917.2 | 
+| Mean | 854.0 | 
+
+#### Figures
+
+<img src="media/dmc/5M/dmc-Acrobot-swingup.png" width="18%"/> <img src="media/dmc/5M/dmc-BallInCup-catch.png" width="18%"/> <img src="media/dmc/5M/dmc-Cartpole-balance_sparse.png" width="18%"/> <img src="media/dmc/5M/dmc-Cartpole-balance.png" width="18%"/> <img src="media/dmc/5M/dmc-Cartpole-swingup_sparse.png" width="18%"/> 
+
+<img src="media/dmc/5M/dmc-Cartpole-swingup.png" width="18%"/> <img src="media/dmc/5M/dmc-Cheetah-run.png" width="18%"/> <img src="media/dmc/5M/dmc-Finger-spin.png" width="18%"/> <img src="media/dmc/5M/dmc-Finger-turn_easy.png" width="18%"/> <img src="media/dmc/5M/dmc-Finger-turn_hard.png" width="18%"/> 
+
+<img src="media/dmc/5M/dmc-Hopper-hop.png" width="18%"/> <img src="media/dmc/5M/dmc-Hopper-stand.png" width="18%"/> <img src="media/dmc/5M/dmc-Pendulum-swingup.png" width="18%"/> <img src="media/dmc/5M/dmc-Quadruped-walk.png" width="18%"/> <img src="media/dmc/5M/dmc-Quadruped-run.png" width="18%"/> 
+
+<img src="media/dmc/5M/dmc-Reacher-easy.png" width="18%"/> <img src="media/dmc/5M/dmc-Reacher-hard.png" width="18%"/> <img src="media/dmc/5M/dmc-Walker-run.png" width="18%"/> <img src="media/dmc/5M/dmc-Walker-stand.png" width="18%"/> <img src="media/dmc/5M/dmc-Walker-walk.png" width="18%"/>
+
+<img src="media/dmc/5M/median.png" width="18%"/> <img src="media/dmc/5M/mean.png" width="18%"/>
+
 ### Atari 100k Scores (400k env steps)
+
+#### Scores
 
 | Task    | Random | Human | Score |
 | -------- | ------- | ------- | ------- |
 | Env Steps | - | - | 400K |
+| Num envs | - | - | 1 |
 | Alien | 228 | 7128 | 986.0 | 
 | Amidar | 6 | 1720 | 142.6 | 
 | Assault | 222 | 742 | 683.2 | 
@@ -119,7 +166,7 @@ env_name=dmc-Acrobot-swingup python3 main.py -c configs/DreamerV3/dreamer_v3.py 
 | Human Median | 0% | 100% | 57.7% |
 | Human Mean | 0% | 100% | 114.2% |
 
-### Atari 100k Figures
+#### Figures
 
 <img src="media/atari100k/atari100k-alien.png" width="18%"/> <img src="media/atari100k/atari100k-amidar.png" width="18%"/> <img src="media/atari100k/atari100k-assault.png" width="18%"/> <img src="media/atari100k/atari100k-asterix.png" width="18%"/> <img src="media/atari100k/atari100k-bank_heist.png" width="18%"/> 
 
@@ -135,13 +182,16 @@ env_name=dmc-Acrobot-swingup python3 main.py -c configs/DreamerV3/dreamer_v3.py 
 
 ### Atari Scores (200M env steps)
 
+#### Scores
+
 | Task    | Random | Human | Record | Score |
 | -------- | ------- | ------- | ------- | ------- |
 | Env Steps | - | - | - | 200M |
+| Num envs | - | - | 8 |
 | Breakout | 2 | 30 | 864 | 370.5 |
 | Montezuma Revenge | 0 | 4753 | 1219200 | 2520 |
 
-### Atari Figures
+#### Figures
 
 <img src="media/atari/atari-breakout.png" width="18%"/> <img src="media/atari/atari-montezuma_revenge.png" width="18%"/>
 
