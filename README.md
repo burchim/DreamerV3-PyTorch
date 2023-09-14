@@ -164,7 +164,7 @@ env_name=dmc-Acrobot-swingup python3 main.py -c configs/DreamerV3/dreamer_v3.py 
 | Seaquest | 68 | 42055 | 546.0 | 
 | Up N Down | 533 | 11693 | 6040.0 |
 | Human Median | 0% | 100% | 57.7% |
-| Human Mean | 0% | 100% | 114.2% |
+| Human Mean | 0% | 100% | 109.9% |
 
 #### Figures
 
