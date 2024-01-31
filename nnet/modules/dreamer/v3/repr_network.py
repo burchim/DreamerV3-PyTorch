@@ -21,7 +21,19 @@ from nnet import modules
 
 class ReprNetwork(nn.Module):
 
-    def __init__(self, dim_input_cnn=3, dim_cnn=48, act_fun=nn.SiLU, weight_init="dreamerv3_normal", bias_init="zeros", cnn_norm={"class": "LayerNorm", "params": {"eps": 1e-3}}, dim_input_mlp=1179, num_mlp_layers=5, hidden_size=1024, mlp_norm={"class": "LayerNorm", "params": {"eps": 1e-3}}):
+    def __init__(
+        self, 
+        dim_input_cnn=3, 
+        dim_cnn=48, 
+        act_fun=nn.SiLU, 
+        weight_init="dreamerv3_normal", 
+        bias_init="zeros", 
+        cnn_norm={"class": "LayerNorm", "params": {"eps": 1e-3}}, 
+        dim_input_mlp=1178, 
+        num_mlp_layers=5, 
+        hidden_size=1024, 
+        mlp_norm={"class": "LayerNorm", "params": {"eps": 1e-3}}
+    ):
         super(ReprNetwork, self).__init__()
 
         self.dim_cnn = dim_cnn

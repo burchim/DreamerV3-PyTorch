@@ -94,9 +94,18 @@ class Module(nn.Module):
         else:
             raise Exception("Incorrect struct type: {}. Must be dict, list module, tensor or None.".format(type(struct)))
         
-    def add_frozen(self, name, module):
+    def add_frozen(self, name, module, persistent=True):
 
+        """ add frozen module (requires_grad==False) to state dict, add to module buffer if persistent==False """
+
+        # Set Require Grad to False
         self.set_require_grad(module, False)
-        self.modules_buffer[name] = module
-        object.__setattr__(self, name, module)
 
+        # Add to Modules to include in state_dict
+        if persistent:
+            self.add_module(name, module)
+
+        # Add to Modules Buffer
+        else:
+            self.modules_buffer[name] = module
+            object.__setattr__(self, name, module)

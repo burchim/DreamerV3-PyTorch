@@ -34,7 +34,7 @@ class RSSM(nn.Module):
             std_fun=modules.Sigmoid2, 
             embed_size=4*4*8*96, 
             discrete=32, 
-            min_std=0.1, 
+            min_std=0.1,
             learn_initial=True, 
             weight_init="dreamerv3_normal", 
             bias_init="zeros", 
@@ -56,16 +56,45 @@ class RSSM(nn.Module):
         self.learn_initial = learn_initial
         self.action_clip = action_clip
 
-        self.gru = modules.rnns.DreamerV2GRUCell(hidden_size, deter_size, weight_init=weight_init, bias_init=bias_init)
-        if self.discrete:
-            self.mlp_img1 = modules.MultiLayerPerceptron(stoch_size * discrete + num_actions, hidden_size, act_fun=act_fun, weight_init=weight_init, bias_init=bias_init, norm=norm, bias=norm is None)
-            self.mlp_img2 = modules.MultiLayerPerceptron(deter_size, [hidden_size, self.discrete * stoch_size], act_fun=[act_fun, None], weight_init=[weight_init, dist_weight_init], bias_init=[bias_init, dist_bias_init], norm=[norm, None], bias=[norm is None, True])
-            self.mlp_obs1 = modules.MultiLayerPerceptron(embed_size + deter_size, [hidden_size, self.discrete * stoch_size], act_fun=[act_fun, None], weight_init=[weight_init, dist_weight_init], bias_init=[bias_init, dist_bias_init], norm=[norm, None], bias=[norm is None, True])
-        else:
-            self.mlp_img1 = modules.MultiLayerPerceptron(stoch_size + num_actions, hidden_size, act_fun=act_fun, weight_init=weight_init, bias_init=bias_init, norm=norm, bias=norm is None)
-            self.mlp_img2 = modules.MultiLayerPerceptron(deter_size, [hidden_size, 2 * stoch_size], act_fun=[act_fun, None], weight_init=[weight_init, dist_weight_init], bias_init=[bias_init, dist_bias_init], norm=[norm, None], bias=[norm is None, True])
-            self.mlp_obs1 = modules.MultiLayerPerceptron(embed_size + deter_size, [hidden_size, 2 * stoch_size], act_fun=[act_fun, None], weight_init=[weight_init, dist_weight_init], bias_init=[bias_init, dist_bias_init], norm=[norm, None], bias=[norm is None, True])
-        
+        # Sequence Model
+        self.mlp_img1 = modules.MultiLayerPerceptron(
+            dim_input=stoch_size * self.discrete + num_actions if self.discrete else stoch_size + num_actions, 
+            dim_layers=hidden_size, 
+            act_fun=act_fun, 
+            weight_init=weight_init, 
+            bias_init=bias_init, 
+            norm=norm, 
+            bias=norm is None
+        )
+        self.gru = modules.rnns.DreamerV3GRUCell(
+            input_size=hidden_size, 
+            hidden_size=deter_size, 
+            weight_init=weight_init,
+            norm=norm
+        )
+
+        # Representation Model
+        self.mlp_img2 = modules.MultiLayerPerceptron(
+            dim_input=deter_size, 
+            dim_layers=[hidden_size, self.discrete * stoch_size if self.discrete else 2 * stoch_size], 
+            act_fun=[act_fun, None], 
+            weight_init=[weight_init, dist_weight_init], 
+            bias_init=[bias_init, dist_bias_init], 
+            norm=[norm, None], 
+            bias=[norm is None, True]
+        )
+
+        # Dynamics Predictor
+        self.mlp_obs1 = modules.MultiLayerPerceptron(
+            dim_input=embed_size + deter_size, 
+            dim_layers=[hidden_size, self.discrete * stoch_size if self.discrete else 2 * stoch_size], 
+            act_fun=[act_fun, None], 
+            weight_init=[weight_init, dist_weight_init], 
+            bias_init=[bias_init, dist_bias_init], 
+            norm=[norm, None], 
+            bias=[norm is None, True]
+        )
+
         if self.learn_initial:
             self.weight_init = nn.Parameter(torch.zeros(self.deter_size))
 
@@ -243,6 +272,29 @@ class RSSM(nn.Module):
 
         # Return Prior
         return {"stoch": stoch, "deter": deter, **dist_params}
+    
+    def forward_obs(self, deter, embed):
+
+        # Concat deter and Emb
+        emb_h = torch.concat([embed, deter], dim=-1)
+
+        # MLP Obs 1
+        if self.discrete:
+            dist_params = {'logits': self.mlp_obs1(emb_h).reshape(emb_h.shape[:-1] + (self.stoch_size, self.discrete))}
+        else:
+            mean, std = torch.chunk(self.mlp_obs1(emb_h), chunks=2, dim=-1)
+
+            # Born std to [self.min_std:+inf]
+            std = self.std_fun(std) + self.min_std
+
+            # Dist Params
+            dist_params = {'mean': mean, 'std': std}
+
+        # Sample
+        stoch = self.get_dist(dist_params).rsample()
+
+        # Return Post
+        return {"stoch": stoch, "deter": deter, **dist_params}
 
     def forward(self, prev_state, prev_action, embed, is_first):
 
@@ -252,7 +304,7 @@ class RSSM(nn.Module):
         if self.action_clip > 0.0:
             prev_action *= (self.action_clip / torch.clip(torch.abs(prev_action), min=self.action_clip)).detach()
 
-        # Resest First States and Actions
+        # Reset First States and Actions, necessary for traj buffer since some states will be reset mid-sequence
         if is_first.any():
 
             # Unsqueeze is_first (B, 1)
@@ -270,26 +322,8 @@ class RSSM(nn.Module):
         # Forward Img
         prior = self.forward_img(prev_state, prev_action)
 
-        # Concat deter and Emb
-        emb_h = torch.concat([embed, prior["deter"]], dim=-1)
-
-        # MLP Obs 1
-        if self.discrete:
-            dist_params = {'logits': self.mlp_obs1(emb_h).reshape(emb_h.shape[:-1] + (self.stoch_size, self.discrete))}
-        else:
-            mean, std = torch.chunk(self.mlp_obs1(emb_h), chunks=2, dim=-1)
-
-            # Born std to [self.min_std:+inf]
-            std = self.std_fun(std) + self.min_std
-
-            # Dist Params
-            dist_params = {'mean': mean, 'std': std}
-
-        # Sample
-        stoch = self.get_dist(dist_params).rsample()
-
-        # Post
-        post = {"stoch": stoch, "deter": prior["deter"], **dist_params}
+        # Forward Obs
+        post = self.forward_obs(prior["deter"], embed)
 
         # Return post and prior
         return post, prior

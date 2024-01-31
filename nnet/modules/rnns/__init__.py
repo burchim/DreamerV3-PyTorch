@@ -12,6 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .dreamer_v2_gru_cell import DreamerV2GRUCell
+from .dreamer_v3_gru_cell import DreamerV3GRUCell
 
 

@@ -69,7 +69,7 @@ class MinecraftDiamond:
       episode_saving_path=None
     ):
 
-    self.state_shape = ([3, img_size[0], img_size[1]], (1179,))
+    self.state_shape = ([3, img_size[0], img_size[1]], (1178,))
 
     actions = {
             **BASIC_ACTIONS,
@@ -134,10 +134,7 @@ class MinecraftDiamond:
   def process_obs(self, obs):
 
     # Obs Pixels
-    obs_pixels = torch.tensor(obs["image"].copy(), dtype=torch.float32).permute(2, 0, 1)
-
-    # Normalize
-    obs_pixels = (obs_pixels - 127.5) / 255 # [-0.5: 0.5] # [0:1] in original https://github.com/danijar/dreamerv3/blob/423291a9875bb9af43b6db7150aaa972ba889266/dreamerv3/agent.py#L110
+    obs_pixels = torch.tensor(obs["image"].copy()).permute(2, 0, 1) # uint8, mem efficient for buffer
 
     # Reward
     reward = torch.tensor(obs["reward"], dtype=torch.float32)
@@ -159,7 +156,7 @@ class MinecraftDiamond:
     obs_hunger = torch.tensor([obs["hunger"]], dtype=torch.float32)
     obs_breath = torch.tensor([obs["breath"]], dtype=torch.float32)
     obs_reward = torch.tensor([obs["reward"]], dtype=torch.float32)
-    obs_lowd = torch.cat([obs_inventory, obs_inventory_max, obs_equipped, obs_health, obs_hunger, obs_breath, obs_reward], dim=0)
+    obs_lowd = torch.cat([obs_inventory, obs_inventory_max, obs_equipped, obs_health, obs_hunger, obs_breath], dim=0)
 
     # Obs tuple
     obs = (obs_pixels, obs_lowd)
@@ -244,7 +241,30 @@ class MinecraftDiamond:
     is_first = torch.tensor(False, dtype=torch.float32)
 
     return AttrDict(state=state, reward=reward, done=done, is_first=is_first, is_last=is_last)
-    
+
+  def get_episode_state(self):
+
+    items = [
+      'log', 
+      'planks', 
+      'stick', 
+      'crafting_table', 
+      'wooden_pickaxe', 
+      'cobblestone', 
+      'stone_pickaxe', 
+      'iron_ore', 
+      'furnace', 
+      'iron_ingot', 
+      'iron_pickaxe', 
+      'diamond'
+    ]
+
+    episode_state = {}
+    for item in items:
+      episode_state[item] = self.env.inventory[item].item()
+
+    return episode_state
+
 BASIC_ACTIONS = {
     'noop': dict(),
     'attack': dict(attack=1),

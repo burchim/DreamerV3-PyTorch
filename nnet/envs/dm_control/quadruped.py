@@ -31,9 +31,30 @@ class Quadruped(dm_control.DeepMindControlEnv):
     
     """
 
-    def __init__(self, img_size=(84, 84), mode="classic", history_frames=4, episode_saving_path=None, task="run", action_repeat=1):
+    def __init__(
+            self, 
+            img_size=(84, 84), 
+            mode="classic", 
+            history_frames=4, 
+            episode_saving_path=None, 
+            task="run", 
+            action_repeat=1,
+            apply_random_background=False,
+            background_videos=None
+            ):
         assert task in ["walk", "run", "escape", "fetch"]
-        super(Quadruped, self).__init__(domain="quadruped", task=task, img_size=img_size, mode=mode, history_frames=history_frames, episode_saving_path=episode_saving_path, action_repeat=action_repeat, camera_id=2)
+        super(Quadruped, self).__init__(
+            domain="quadruped", 
+            task=task, 
+            img_size=img_size, 
+            mode=mode, 
+            history_frames=history_frames, 
+            episode_saving_path=episode_saving_path, 
+            action_repeat=action_repeat, 
+            camera_id=2, 
+            apply_random_background=apply_random_background, 
+            background_videos=background_videos
+        )
 
         self.num_actions = 12
         self.state_size = 78

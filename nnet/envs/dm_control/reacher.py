@@ -32,9 +32,29 @@ class Reacher(dm_control.DeepMindControlEnv):
     
     """
 
-    def __init__(self, img_size=(84, 84), mode="classic", history_frames=4, episode_saving_path=None, task="easy", action_repeat=1):
+    def __init__(
+            self, 
+            img_size=(84, 84), 
+            mode="classic", 
+            history_frames=4, 
+            episode_saving_path=None, 
+            task="easy", 
+            action_repeat=1,
+            apply_random_background=False,
+            background_videos=None
+            ):
         assert task in ["easy", "hard"]
-        super(Reacher, self).__init__(domain="reacher", task=task, img_size=img_size, mode=mode, history_frames=history_frames, episode_saving_path=episode_saving_path, action_repeat=action_repeat)
+        super(Reacher, self).__init__(
+            domain="reacher", 
+            task=task, 
+            img_size=img_size, 
+            mode=mode, 
+            history_frames=history_frames, 
+            episode_saving_path=episode_saving_path, 
+            action_repeat=action_repeat, 
+            apply_random_background=apply_random_background, 
+            background_videos=background_videos
+        )
 
         self.num_actions = 2
         self.state_size = 6

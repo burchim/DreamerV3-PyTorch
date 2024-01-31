@@ -1,9 +1,8 @@
 import nnet
-import torch
 import os
 import json
 
-# Get env_name
+# Extract params from filename
 env_name = os.environ["env_name"]
 print("DreamerV3 selected env_name: {}".format(env_name))
 
@@ -18,26 +17,27 @@ model = nnet.models.rl.dreamer.DreamerV3(env_name=env_name, override_config=over
 model.compile()
 
 # Training
-precision = torch.float16
-grad_init_scale = 32.0
-num_workers = 8
+precision = model.config.precision
+grad_init_scale = model.config.grad_init_scale
 epochs = model.config.epochs
 epoch_length = model.config.epoch_length
-save_episodes = True
+save_trajectories = True
 
 # Callback Path
-callback_path = "callbacks/DreamerV3/{}".format(env_name)
+if os.environ.get("run_name", False):
+    callback_path = "callbacks/DreamerV3/{}/{}".format(os.environ["run_name"], env_name)
+else:
+    callback_path = "callbacks/DreamerV3/{}".format(env_name)
 
 # Replay Buffer
 training_dataset = nnet.datasets.replay_buffers.DreamerV3ReplayBuffer(
-    num_workers=num_workers,
     batch_size=model.config.batch_size,
     root=callback_path,
     buffer_capacity=model.config.buffer_capacity,
     epoch_length=epoch_length,
     sample_length=model.config.L,
     collate_fn=model.config.collate_fn,
-    save_trajectories=save_episodes
+    save_trajectories=save_trajectories
 )
 model.set_replay_buffer(training_dataset)
 

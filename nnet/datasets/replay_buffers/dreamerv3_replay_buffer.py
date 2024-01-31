@@ -23,58 +23,51 @@ from nnet import utils
 import os
 import random
 import collections
-import copy
+import glob
 
 class DreamerV3ReplayBuffer(datasets.Dataset):
 
+    """ DreamerV3 Replay Buffer
+
+    Save new trajectory for every new step, instead of for every new episode like in DreamerV1 and DreamerV2
+
+    buffer infos:
+        traj_index: unique index of trajectory
+        num_steps: number of trajectories in buffer, need to be <= buffer capacity
+    
+    """
+
     def __init__(
-            self, 
-            num_workers, 
+            self,
             batch_size, 
             root, 
             buffer_capacity,
             epoch_length, 
-            sample_length, 
-            include_done=False, 
+            sample_length,
             shuffle=True,
             save_trajectories=True, 
             collate_fn=utils.CollateFn(inputs_params=[{"axis": 0}, {"axis": 1}, {"axis": 2}, {"axis": 3}, {"axis": 4}], targets_params=[]), 
             buffer_name="DreamerV3ReplayBuffer"
         ):
-        super(DreamerV3ReplayBuffer, self).__init__(num_workers=num_workers, batch_size=batch_size, collate_fn=collate_fn, shuffle=shuffle, root=root)
-
-        # to fix num_workers
-        assert not (num_workers > 0 and not save_trajectories), "not implemented"
+        super(DreamerV3ReplayBuffer, self).__init__(num_workers=0, batch_size=batch_size, collate_fn=collate_fn, shuffle=shuffle, root=root)
 
         # Params
         self.buffer_name = buffer_name # name of buffer directory
         self.buffer_capacity = buffer_capacity # maximum number of steps in ram
         self.epoch_length = epoch_length # dataset epoch length
         self.sample_length = sample_length # L, sample temporal length to return in steps
-        self.include_done = include_done # include done when loading episode
-        self.ram_buffer = collections.OrderedDict() # Init Buffer as Ordered dict
+        self.ram_buffer = collections.OrderedDict()
         self.streams = collections.OrderedDict()
-        self.num_steps = torch.tensor(0) # Num steps in ram buffer, must be <= buffer_capacity
         self.traj_index = torch.tensor(0) # Trajectory unique id
-        self.num_trajs = torch.tensor(0) # Number of trajectories in ram buffer
+        self.num_steps = torch.tensor(0) # Number of trajectories in ram buffer, must be <= buffer_capacity
+        self.last_save_traj_index = 0 # Last Save infos, (epoch necessary to load/save buffer)
         self.worker_id = None # dataloading id
         self.buffer_dir = os.path.join(root, self.buffer_name) # Buffer Dir
-        self.save_trajectories = save_trajectories # Save Replay Buffer Episodes
+        self.save_trajectories = save_trajectories # Save Replay Buffer Trajectories to main memory for checkpointing, also load trajectories from main memory instead of using ram buffer
 
         # Create Buffer Dir
         if self.save_trajectories and not os.path.isdir(self.buffer_dir):
             os.makedirs(self.buffer_dir, exist_ok=True)
-
-        # Multi Workers
-        if self.num_workers > 0:
-
-            # Moves the underlying storage to shared memory
-            self.num_steps.share_memory_()
-            self.traj_index.share_memory_()
-            self.num_trajs.share_memory_()
-
-            # Persistent workers after each epoch
-            self.persistent_workers = True
 
         # Distributed
         if torch.distributed.is_initialized():
@@ -82,15 +75,50 @@ class DreamerV3ReplayBuffer(datasets.Dataset):
         else:
             self.rank = 0
 
-    def get_buffer_state(self):
-        return {
-            "buffer_steps": self.num_steps, 
-            "buffer_traj_id": self.traj_index
+    def state_dict(self):
+        return { 
+            "traj_index": self.traj_index,
+            "num_steps": self.num_steps,
+            "buffer_keys": list(self.ram_buffer.keys())
         }
+    
+    def load_state_dict(self, state_dict):
+        self.traj_index.fill_(state_dict.pop("traj_index"))
+        self.num_steps.fill_(state_dict.pop("num_steps"))
+        self.load(state_dict.pop("buffer_keys"))
 
-    def restore_buffer(self):
+    def save(self):
 
-        pass
+        # Save Trajs
+        if self.save_trajectories:
+
+            # Select Trajs
+            save_trajs = {traj_id:self.ram_buffer[traj_id] for traj_id in range(self.last_save_traj_index, self.traj_index)}
+
+            # Save Trajs
+            torch.save(save_trajs, os.path.join(self.buffer_dir, "{}_rank{}.torch".format(self.traj_index, self.rank)))
+
+            # Update 
+            self.last_save_traj_index = self.traj_index.item()
+
+    def load(self, buffer_keys):
+        
+        # All Saves
+        for path_trajs in glob.glob(os.path.join(self.buffer_dir, "*_rank{}.torch".format(self.rank))):
+
+            # Load Save
+            load_trajs = torch.load(path_trajs)
+
+            # Add required trajs
+            for key, value in load_trajs.items():
+                if key in buffer_keys:
+                    self.ram_buffer[key] = value
+
+        # Assert all keys loaded
+        assert sorted(buffer_keys) == sorted(list(self.ram_buffer.keys())), "some buffer traj keys are missing, buffer save may be corrupted: {} buffer keys, {} loaded keys".format(len(buffer_keys), len(list(self.ram_buffer.keys())))
+
+        # Update 
+        self.last_save_traj_index = self.traj_index.item()
 
     def enforce_capacity(self):
 
@@ -98,21 +126,17 @@ class DreamerV3ReplayBuffer(datasets.Dataset):
         while self.num_steps > self.buffer_capacity:
 
             # Pop oldest Episode
-            if not self.save_trajectories:
-                oldest_traj_id, oldest_traj = self.ram_buffer.popitem(last=False)
+            oldest_episode_id = (self.traj_index - self.num_steps).item()
+            self.ram_buffer.pop(oldest_episode_id)
 
             # Update Number of steps
-            self.num_steps -= self.sample_length
-            self.num_trajs -= 1
+            self.num_steps -= 1
 
     def append_step(self, sample, sample_id):
 
         # None sample
         if sample is None:
             return
-        
-        # Copy sample to avoid memory modif
-        sample = copy.deepcopy(sample)
 
         # Init Stream
         if sample_id not in self.streams:
@@ -122,38 +146,30 @@ class DreamerV3ReplayBuffer(datasets.Dataset):
         stream = self.streams[sample_id]
 
         # Update Stream
-        stream.append(sample)
+        stream.append([s.clone() for s in sample]) # Clone
 
         # Unfinished Trajectory
         if len(stream) < self.sample_length:
-            return self.get_buffer_state()
+            return self.state_dict()
         assert len(stream) == self.sample_length
-        
-        # Stack Trajectory
-        traj = [torch.stack([stream[t][elt] for t in range(self.sample_length)], dim=0) for elt in range(len(stream[0]))]
 
-        # Clear Stream
-        self.streams[sample_id] = []
+        # Order Traj (elt, time) without memory copy
+        traj = [[stream[t][elt] for t in range(self.sample_length)] for elt in range(len(stream[0]))]
 
-        # Save Sample
-        if self.save_trajectories:
-            torch.save(traj, os.path.join(self.buffer_dir, "{}_rank{}.torch".format(self.traj_index, self.rank)))
+        # Slice Stream first element
+        self.streams[sample_id].pop(0)
 
         # Add to ram buffer (using tensor instead of int as key will replace instead of adding)
-        else:
-            self.ram_buffer[self.traj_index.item()] = traj
+        self.ram_buffer[self.traj_index.item()] = traj
 
         # Update Index
         self.traj_index += 1
-        self.num_trajs += 1
-
-        # Update Number of steps
-        self.num_steps += self.sample_length
+        self.num_steps += 1
 
         # enforse num_steps <= buffer_capacity
         self.enforce_capacity()
 
-        return self.get_buffer_state()
+        return self.state_dict()
 
     def __len__(self):
 
@@ -169,15 +185,9 @@ class DreamerV3ReplayBuffer(datasets.Dataset):
     def sample(self):
 
         
-        # Select Episode from main memory
-        if self.save_trajectories:
-            traj = torch.load(os.path.join(self.buffer_dir, "{}_rank{}.torch".format(random.randint(self.traj_index - self.num_trajs, self.traj_index-1), self.rank)))
-        
         # Select Episode from ram
-        else:
-            traj = random.choice(list(self.ram_buffer.values()))
-            
-        #print(self.traj_index, self.num_trajs, self.num_steps)
+        traj = self.ram_buffer[random.choice(list(self.ram_buffer.keys()))]
+
+        traj = [torch.stack(elt, axis=0) for elt in traj]
 
         return traj
-

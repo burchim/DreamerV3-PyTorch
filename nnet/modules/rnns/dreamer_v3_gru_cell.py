@@ -17,22 +17,26 @@ import torch
 from torch import nn
 
 # NeuralNets
-from nnet import inits
 from nnet import modules
 
-class DreamerV2GRUCell(nn.Module):
+class DreamerV3GRUCell(nn.Module):
 
-    def __init__(self, input_size, hidden_size, weight_init="xavier_uniform", bias_init="zeros"):
-        super(DreamerV2GRUCell, self).__init__()
+    def __init__(
+            self, 
+            input_size, 
+            hidden_size, 
+            weight_init="dreamerv3_normal",
+            norm={"class": "LayerNorm", "params": {"eps": 1e-3}}
+        ):
+        super(DreamerV3GRUCell, self).__init__()
 
         # Params
         self.input_size = input_size
         self.hidden_size = hidden_size
-        self.update_bias = -1
 
         # Weights and biases
-        self.linear = modules.Linear(input_size + hidden_size, 3 * hidden_size, weight_init=weight_init, bias=bias_init)
-        self.layernorm = nn.LayerNorm(3 * hidden_size, eps=1e-3)
+        self.linear = modules.Linear(input_size + hidden_size, 3 * hidden_size, weight_init=weight_init, bias=False)
+        self.norm = modules.norm_dict[norm["class"]](3 * hidden_size, **norm["params"], channels_last=True)
 
     def forward(self, x, hidden):
 
@@ -50,10 +54,7 @@ class DreamerV2GRUCell(nn.Module):
         parts = self.linear(torch.cat([input, state], dim=-1))
 
         # Norm
-        dtype = parts.dtype
-        parts = parts.type(torch.float32)
-        parts = self.layernorm(parts)
-        parts = parts.type(dtype)
+        parts = self.norm(parts)
 
         # Chunk
         reset, cand, update = parts.chunk(chunks=3, dim=-1)
@@ -65,7 +66,7 @@ class DreamerV2GRUCell(nn.Module):
         cand = torch.tanh(reset * cand)
 
         # Apply update Sigmoid
-        update = torch.sigmoid(update + self.update_bias)
+        update = torch.sigmoid(update - 1)
 
         # Hidden
         h = update * cand + (1 - update) * state

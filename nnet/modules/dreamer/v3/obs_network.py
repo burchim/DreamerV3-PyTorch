@@ -22,15 +22,32 @@ from nnet import distributions
 
 class ObsNetwork(nn.Module):
 
-    def __init__(self, feat_size=32*32+4096, dim_cnn=96, dim_output_cnn=3, act_fun=nn.SiLU, weight_init="dreamerv3_normal", bias_init="zeros", norm={"class": "LayerNorm", "params": {"eps": 1e-3}}, dim_output_mlp=1178, num_mlp_layers=5, hidden_size=1024, mlp_norm={"class": "LayerNorm", "params": {"eps": 1e-3}}, dist_weight_init="xavier_uniform", dist_bias_init="zeros"):
+    def __init__(
+        self, 
+        feat_size=32*32+4096, 
+        dim_cnn=96, 
+        dim_output_cnn=3, 
+        act_fun=nn.SiLU, 
+        weight_init="dreamerv3_normal", 
+        bias_init="zeros", 
+        norm={"class": "LayerNorm", "params": {"eps": 1e-3}}, 
+        dim_output_mlp=1178, 
+        num_mlp_layers=5, 
+        hidden_size=1024, 
+        mlp_norm={"class": "LayerNorm", "params": {"eps": 1e-3}}, 
+        dist_weight_init="xavier_uniform", 
+        dist_bias_init="zeros"
+    ):
         super(ObsNetwork, self).__init__()
 
         self.feat_size = feat_size
         self.dim_cnn = dim_cnn
         self.dim_output_mlp = dim_output_mlp
 
+        # CNN proj
         self.proj = modules.Linear(feat_size, 8 * dim_cnn * 4 * 4, weight_init="xavier_uniform", bias_init="zeros")
 
+        # CNN
         # 4 -> 8 -> 16 -> 32 -> 64
         self.cnn = modules.ConvTransposeNeuralNetwork(  
             dim_input=8*dim_cnn,
@@ -47,6 +64,7 @@ class ObsNetwork(nn.Module):
             channels_last=False
         )
 
+        # MLP, init not same as otiginal DreamerV3 since ouput units are concat and use xavier_uniform
         if dim_output_mlp is not None:
             self.mlp = modules.MultiLayerPerceptron(dim_input=feat_size, dim_layers=[hidden_size for _ in range(num_mlp_layers)], act_fun=act_fun, weight_init=weight_init, bias_init=bias_init, norm=mlp_norm, bias=mlp_norm is None)
             self.mlp_proj = modules.Linear(hidden_size, dim_output_mlp, weight_init=dist_weight_init, bias_init=dist_bias_init)

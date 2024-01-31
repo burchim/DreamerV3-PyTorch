@@ -232,8 +232,8 @@ class AtariEnv:
 
     def preprocess(self, state, reward, done):
 
-        # To tensor, normalize
-        state = torch.tensor(state, dtype=torch.float32) / 255.0 - 0.5
+        # To tensor
+        state = torch.tensor(state) # uint8, mem efficient for buffer
 
         # (C, H, W)
         if self.grayscale_obs:
@@ -291,7 +291,6 @@ class AtariEnv:
 
         # Env Step
         state, reward, done, infos = self.env.step(action.item())
-
 
         # Update Episode Score
         self.episode_score += reward

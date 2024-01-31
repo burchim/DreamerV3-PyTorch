@@ -30,9 +30,29 @@ class Fish(dm_control.DeepMindControlEnv):
     
     """
 
-    def __init__(self, task="swim", img_size=(84, 84), mode="classic", history_frames=4, episode_saving_path=None, action_repeat=1):
+    def __init__(
+            self, 
+            task="swim", 
+            img_size=(84, 84), 
+            mode="classic", 
+            history_frames=4, 
+            episode_saving_path=None, 
+            action_repeat=1,
+            apply_random_background=False,
+            background_videos=None
+            ):
         assert task in ["swim", "upright"]
-        super(Fish, self).__init__(domain="fish", task=task, img_size=img_size, mode=mode, history_frames=history_frames, episode_saving_path=episode_saving_path, action_repeat=action_repeat)
+        super(Fish, self).__init__(
+            domain="fish", 
+            task=task, 
+            img_size=img_size, 
+            mode=mode, 
+            history_frames=history_frames, 
+            episode_saving_path=episode_saving_path, 
+            action_repeat=action_repeat, 
+            apply_random_background=apply_random_background, 
+            background_videos=background_videos
+        )
 
         self.num_actions = 5
         self.state_size = 24

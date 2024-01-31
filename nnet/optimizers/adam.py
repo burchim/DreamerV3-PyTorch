@@ -62,6 +62,10 @@ class Adam(optim.Adam):
             # Update lr
             group['lr'] = group['lr_scheduler'].step()
 
+            # To Float
+            if isinstance(group['lr'], torch.Tensor):
+                group['lr'] = group['lr'].item()
+
             # Norm Grads
             if group['grad_max_norm'] is not None:
                 group["grad_norm"] = torch.nn.utils.clip_grad_norm_(group["params"], group['grad_max_norm'])
@@ -86,7 +90,13 @@ class Adam(optim.Adam):
     def load_state_dict(self, state_dict):
 
         # Load Scheduler Step
-        self.param_groups[0]["lr_scheduler"].model_step.fill_(state_dict.pop("model_step"))
-
+        for i, group in enumerate(self.param_groups):
+            group["lr_scheduler"].model_step.fill_(state_dict["param_groups"][i]["lr_scheduler"].model_step)
+            state_dict["param_groups"][i]["lr_scheduler"].model_step = group["lr_scheduler"].model_step
+        
         # Load State Dict
         super(Adam, self).load_state_dict(state_dict)
+
+        # Load Scheduler Step
+        for i, group in enumerate(self.param_groups):
+            group["lr_scheduler"].model_step = state_dict["param_groups"][i]["lr_scheduler"].model_step

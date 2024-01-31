@@ -45,34 +45,35 @@ env_name=dmc-Acrobot-swingup python3 main.py -c configs/DreamerV3/dreamer_v3.py 
 
 ### Visual Deep Mind Control Scores (1M env steps)
 
+We averaged the evaluation score over 10 episodes and used 3 seeds per experiment.
+
 #### Scores
 
-| Task    | Score |
-| -------- | ------- |
-| Env Steps | 1M |
-| Num envs | 1 |
-| Acrobot Swingup | 458.7 | 
-| Cartpole Balance | 996.7 | 
-| Cartpole Balance Sparse | 1000.0 | 
-| Cartpole Swingup | 860.7 |
-| Cartpole Swingup Sparse | 844.2 | 
-| Cheetah Run | 860.6 |
-| Cup Catch | 966.2 |
-| Finger Spin | 427.6 |
-| Finger Turn Easy | 794.7 |
-| Finger Turn Hard | 856.7 |
-| Hopper Hop | 294.4 |
-| Hopper Stand | 912.1 |
-| Pendulum Swingup | 784.9 |
-| Quadruped Run | 818.2 | 
-| Quadruped Walk | 892.8 |
-| Reacher Easy | 887.0 |
-| Reacher Hard | 461.2 |
-| Walker Run | 683.8 |
-| Walker Stand | 983.4 |
-| Walker Walk | 961.7 |
-| Median | 858.7 | 
-| Mean | 787.3 | 
+| Task    | DreamerV3 | DreamerV3-PyTorch (this repo) |
+| -------- | ------- | ------- |
+| Env Steps | 1M | 1M |
+| Acrobot Swingup | 210.0 | 410.8 |
+| Cartpole Balance | 996.4 | 999.3 |
+| Cartpole Balance Sparse | 1000.0 | 1000.0 |
+| Cartpole Swingup | 819.1 | 865.1 |
+| Cartpole Swingup Sparse | 792.9 | 525.6 |
+| Cheetah Run | 728.7 | 886.6 |
+| Cup Catch | 957.1 | 741.1 |
+| Finger Spin | 818.5 | 547.6 |
+| Finger Turn Easy | 787.7 | 819.4 |
+| Finger Turn Hard | 810.8 | 832.2 |
+| Hopper Hop | 369.6 | 369.7 |
+| Hopper Stand | 900.6 | 944.6 |
+| Pendulum Swingup | 806.3 | 791.8 |
+| Quadruped Run |352.3 | 683.7 |
+| Quadruped Walk | 352.6 | 733.4 |
+| Reacher Easy | 898.9 | 831.5 |
+| Reacher Hard | 499.2 | 597.2 |
+| Walker Run | 757.8 | 701.1 |
+| Walker Stand | 976.7 | 900.0 |
+| Walker Walk | 955.8 | 956.0 |
+| Mean | 739.6 | 756.8 |
+| Median | 808.5 | 814.0 |
 
 #### Figures
 
@@ -86,85 +87,43 @@ env_name=dmc-Acrobot-swingup python3 main.py -c configs/DreamerV3/dreamer_v3.py 
 
 <img src="media/dmc/median.png" width="18%"/> <img src="media/dmc/mean.png" width="18%"/>
 
-### Visual Deep Mind Control Scores (5M env steps)
-
-#### Scores
-
-| Task    | Score |
-| -------- | ------- |
-| Env Steps | 5M |
-| Num envs | 4 |
-| Acrobot Swingup | 411.2 | 
-| Cartpole Balance | 999.2 | 
-| Cartpole Balance Sparse | 1000.0 | 
-| Cartpole Swingup | 866.7 |
-| Cartpole Swingup Sparse | 841.2 | 
-| Cheetah Run | 916.1 |
-| Cup Catch | 967.5 |
-| Finger Spin | 388.9 |
-| Finger Turn Easy | 823.3 |
-| Finger Turn Hard | 896.6 |
-| Hopper Hop | 640.2 |
-| Hopper Stand | 942.9 |
-| Pendulum Swingup | 793.6 |
-| Quadruped Run | 918.2 | 
-| Quadruped Walk | 940.7 |
-| Reacher Easy | 972.9 |
-| Reacher Hard | 974.9 |
-| Walker Run | 827.0 |
-| Walker Stand | 986.0 |
-| Walker Walk | 973.3 |
-| Median | 917.2 | 
-| Mean | 854.0 | 
-
-#### Figures
-
-<img src="media/dmc/5M/dmc-Acrobot-swingup.png" width="18%"/> <img src="media/dmc/5M/dmc-BallInCup-catch.png" width="18%"/> <img src="media/dmc/5M/dmc-Cartpole-balance_sparse.png" width="18%"/> <img src="media/dmc/5M/dmc-Cartpole-balance.png" width="18%"/> <img src="media/dmc/5M/dmc-Cartpole-swingup_sparse.png" width="18%"/> 
-
-<img src="media/dmc/5M/dmc-Cartpole-swingup.png" width="18%"/> <img src="media/dmc/5M/dmc-Cheetah-run.png" width="18%"/> <img src="media/dmc/5M/dmc-Finger-spin.png" width="18%"/> <img src="media/dmc/5M/dmc-Finger-turn_easy.png" width="18%"/> <img src="media/dmc/5M/dmc-Finger-turn_hard.png" width="18%"/> 
-
-<img src="media/dmc/5M/dmc-Hopper-hop.png" width="18%"/> <img src="media/dmc/5M/dmc-Hopper-stand.png" width="18%"/> <img src="media/dmc/5M/dmc-Pendulum-swingup.png" width="18%"/> <img src="media/dmc/5M/dmc-Quadruped-walk.png" width="18%"/> <img src="media/dmc/5M/dmc-Quadruped-run.png" width="18%"/> 
-
-<img src="media/dmc/5M/dmc-Reacher-easy.png" width="18%"/> <img src="media/dmc/5M/dmc-Reacher-hard.png" width="18%"/> <img src="media/dmc/5M/dmc-Walker-run.png" width="18%"/> <img src="media/dmc/5M/dmc-Walker-stand.png" width="18%"/> <img src="media/dmc/5M/dmc-Walker-walk.png" width="18%"/>
-
-<img src="media/dmc/5M/median.png" width="18%"/> <img src="media/dmc/5M/mean.png" width="18%"/>
-
 ### Atari 100k Scores (400k env steps)
 
+We averaged the evaluation score over 10 episodes and used 3 seeds per experiment.
+
 #### Scores
 
-| Task    | Random | Human | Score |
-| -------- | ------- | ------- | ------- |
-| Env Steps | - | - | 400K |
-| Num envs | - | - | 1 |
-| Alien | 228 | 7128 | 986.0 | 
-| Amidar | 6 | 1720 | 142.6 | 
-| Assault | 222 | 742 | 683.2 | 
-| Asterix | 210 | 8503 | 1045.0 | 
-| Bank Heist | 14 | 753 | 979.0 | 
-| Battle Zone | 2360 | 37188 | 15400.0 | 
-| Boxing | 0 | 12 | 70.6 | 
-| Breakout | 2 | 30 | 19.7 | 
-| Chopper Com. | 811 | 7388 | 1250.0 | 
-| Crazy Climber | 10780 | 35829 | 91300.0 | 
-| Demon Attack | 152 | 1971 | 375.0 | 
-| Freeway | 0 | 30 | 21.7 | 
-| Frostbite | 65 | 4335 | 2300.0 | 
-| Gopher | 258 | 2412 | 3962.0 | 
-| Hero | 1027 | 30826 | 13541.5 | 
-| James Bond | 29 | 303 | 325.0 | 
-| Kangaroo | 52 | 3035 | 5760.0 | 
-| Krull | 1598 | 2666 | 6320.0 | 
-| Kung Fu Master | 258 | 22736 | 27250.0 | 
-| Ms Pacman | 307 | 6952 | 2781.0 | 
-| Pong | –21 | 15 | 18.3 | 
-| Private Eye | 25 | 69571 | 15170.0 |  
-| Qbert | 164 | 13455 | 3322.5 | 
-| Road Runner | 12 | 7845 | 10680.0 |  
-| Seaquest | 68 | 42055 | 546.0 | 
-| Up N Down | 533 | 11693 | 6040.0 |
-| Human Median | 0% | 100% | 57.7% |
-| Human Mean | 0% | 100% | 109.9% |
+| Task    | Random | Human | DreamerV3 | DreamerV3-PyTorch (this repo)  |
+| -------- | ------- | ------- | ------- | ------- |
+| Env Steps | - | - | 400K | 400K |
+| Alien | 228 | 7128 | 959 | 1093 |
+| Amidar | 6 | 1720 | 139 | 115 |
+| Assault | 222 | 742 | 706 | 604 |
+| Asterix | 210 | 8503 | 932 | 1500 |
+| Bank Heist | 14 | 753 | 649 | 639 |
+| Battle Zone | 2360 | 37188 | 12250 | 13867 |
+| Boxing | 0 | 12 | 78 | 78 |
+| Breakout | 2 | 30 | 31 | 65 |
+| Chopper Com. | 811 | 7388 | 420 | 1127 |
+| Crazy Climber | 10780 | 35829 | 97190 | 79647 |
+| Demon Attack | 152 | 1971 | 303 | 233 |
+| Freeway | 0 | 30 | 0 | 10 |
+| Frostbite | 65 | 4335 | 909 | 364 |
+| Gopher | 258 | 2412 | 3730 | 3285 |
+| Hero | 1027 | 30826 | 11161 | 9610 |
+| James Bond | 29 | 303 | 445 | 655 |
+| Kangaroo | 52 | 3035 | 4098 | 4120 |
+| Krull | 1598 | 2666 | 7782 | 8144 |
+| Kung Fu Master | 258 | 22736 | 21420 | 26047 |
+| Ms Pacman | 307 | 6952 | 1327 | 1649 |
+| Pong | –21 | 15 | 18 | 20 |
+| Private Eye | 25 | 69571 | 882 | 1141 |
+| Qbert | 164 | 13455 | 3405 | 1978 |
+| Road Runner | 12 | 7845 | 15565 | 12913 |
+| Seaquest | 68 | 42055 | 618 | 786 |
+| Up N Down | 533 | 11693 | 7600 | 14986 |
+| Human Mean | 0% | 100% | 112% | 120% |
+| Human Median | 0% | 100% | 49% | 44% |
 
 #### Figures
 
@@ -179,21 +138,6 @@ env_name=dmc-Acrobot-swingup python3 main.py -c configs/DreamerV3/dreamer_v3.py 
 <img src="media/atari100k/atari100k-pong.png" width="18%"/> <img src="media/atari100k/atari100k-private_eye.png" width="18%"/> <img src="media/atari100k/atari100k-qbert.png" width="18%"/> <img src="media/atari100k/atari100k-road_runner.png" width="18%"/> <img src="media/atari100k/atari100k-seaquest.png" width="18%"/>
 
 <img src="media/atari100k/atari100k-up_n_down.png" width="18%"/> <img src="media/atari100k/median.png" width="18%"/> <img src="media/atari100k/mean.png" width="18%"/>
-
-### Atari Scores (200M env steps)
-
-#### Scores
-
-| Task    | Random | Human | Record | Score |
-| -------- | ------- | ------- | ------- | ------- |
-| Env Steps | - | - | - | 200M |
-| Num envs | - | - | - | 8 |
-| Breakout | 2 | 30 | 864 | 370.5 |
-| Montezuma Revenge | 0 | 4753 | 1219200 | 2520 |
-
-#### Figures
-
-<img src="media/atari/atari-breakout.png" width="18%"/> <img src="media/atari/atari-montezuma_revenge.png" width="18%"/>
 
 ## Acknowledgments
 

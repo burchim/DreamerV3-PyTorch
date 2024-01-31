@@ -63,8 +63,8 @@ class BatchEnv:
 
             # Create Buffer
             self.buffer = structs.AttrDict(
-                state=tuple((torch.zeros(self.num_envs, 3, 64, 64), torch.zeros(self.num_envs, 1179))),
-                #state=torch.zeros(self.num_envs, 3, 64, 64),
+                state=tuple((torch.zeros(self.num_envs, 3, 64, 64, dtype=torch.uint8), torch.zeros(self.num_envs, 1178, dtype=torch.float32))), # minerl
+                #state=torch.zeros(self.num_envs, 3, 64, 64, dtype=torch.uint8), # dmc / atari
                 reward=torch.zeros(self.num_envs),
                 done=torch.zeros(self.num_envs),
                 is_first=torch.zeros(self.num_envs),

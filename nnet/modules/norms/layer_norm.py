@@ -13,6 +13,7 @@
 # limitations under the License.
 
 # PyTorch
+import torch
 import torch.nn as nn
 
 # NeuralNets
@@ -20,8 +21,24 @@ from nnet.modules import layers
 
 class LayerNorm(nn.LayerNorm):
 
-    def __init__(self, normalized_shape, eps=1e-05, elementwise_affine=True, device=None, dtype=None, channels_last=True, flatten_start_end_dims=None):
-        super(LayerNorm, self).__init__(normalized_shape=normalized_shape, eps=eps, elementwise_affine=elementwise_affine, device=device, dtype=dtype)
+    def __init__(
+            self, 
+            normalized_shape, 
+            eps=1e-05, 
+            elementwise_affine=True, 
+            device=None, 
+            dtype=None, 
+            channels_last=True, 
+            flatten_start_end_dims=None,
+            convert_float32=False
+        ):
+        super(LayerNorm, self).__init__(
+            normalized_shape=normalized_shape, 
+            eps=eps, 
+            elementwise_affine=elementwise_affine, 
+            device=device, 
+            dtype=dtype
+        )
 
         # Channels Last
         if channels_last:
@@ -34,6 +51,9 @@ class LayerNorm(nn.LayerNorm):
         # Flatten / Reshape dims before / after norm
         self.flatten_start_end_dims = flatten_start_end_dims
 
+        # convert_float32
+        self.convert_float32 = convert_float32
+
     def forward(self, input):
 
         # Flatten input
@@ -42,7 +62,11 @@ class LayerNorm(nn.LayerNorm):
             input = input.flatten(start_dim=self.flatten_start_end_dims[0], end_dim=self.flatten_start_end_dims[1])
 
         # LayerNorm
-        output = self.permute_output(super(LayerNorm, self).forward(self.permute_input(input)))
+        if self.convert_float32 and input.dtype != torch.float32:
+            with torch.cuda.amp.autocast(enabled=False):
+                output = self.permute_output(super(LayerNorm, self).forward(self.permute_input(input.type(torch.float32)))).type(input.dtype)
+        else:
+            output = self.permute_output(super(LayerNorm, self).forward(self.permute_input(input)))
 
         # Reshape output
         if self.flatten_start_end_dims is not None:

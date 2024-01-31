@@ -22,7 +22,19 @@ from nnet import distributions
 
 class RewardNetwork(nn.Module):
 
-    def __init__(self, hidden_size=1024, act_fun=nn.SiLU, num_mlp_layers=5, feat_size=32*32+1024, weight_init="dreamerv3_normal", bias_init="zeros", norm={"class": "LayerNorm", "params": {"eps": 1e-3}}, bins=255, dist_weight_init="zeros", dist_bias_init="zeros"):
+    def __init__(
+        self, 
+        hidden_size=1024, 
+        act_fun=nn.SiLU, 
+        num_mlp_layers=5, 
+        feat_size=32*32+1024, 
+        weight_init="dreamerv3_normal", 
+        bias_init="zeros", 
+        norm={"class": "LayerNorm", "params": {"eps": 1e-3}}, 
+        bins=255, 
+        dist_weight_init="zeros", 
+        dist_bias_init="zeros"
+    ):
         super(RewardNetwork, self).__init__()
 
         self.mlp = modules.MultiLayerPerceptron(dim_input=feat_size, dim_layers=[hidden_size for _ in range(num_mlp_layers)], act_fun=act_fun, weight_init=weight_init, bias_init=bias_init, norm=norm, bias=norm is None)

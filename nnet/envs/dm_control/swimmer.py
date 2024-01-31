@@ -29,9 +29,29 @@ class Swimmer(dm_control.DeepMindControlEnv):
     
     """
 
-    def __init__(self, task="swimmer6", img_size=(84, 84), mode="classic", history_frames=4, episode_saving_path=None, action_repeat=1):
+    def __init__(
+            self, 
+            task="swimmer6", 
+            img_size=(84, 84), 
+            mode="classic", 
+            history_frames=4, 
+            episode_saving_path=None, 
+            action_repeat=1,
+            apply_random_background=False,
+            background_videos=None
+            ):
         assert task in ["swimmer6", "swimmer15"]
-        super(Swimmer, self).__init__(domain="swimmer", task=task, img_size=img_size, mode=mode, history_frames=history_frames, episode_saving_path=episode_saving_path, action_repeat=action_repeat)
+        super(Swimmer, self).__init__(
+            domain="swimmer", 
+            task=task, 
+            img_size=img_size, 
+            mode=mode, 
+            history_frames=history_frames, 
+            episode_saving_path=episode_saving_path, 
+            action_repeat=action_repeat, 
+            apply_random_background=apply_random_background, 
+            background_videos=background_videos
+        )
 
         if self.task == "swimmer6":
             self.num_actions = 5

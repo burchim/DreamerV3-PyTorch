@@ -29,6 +29,7 @@ from dm_control.suite.wrappers import pixels
 import datetime
 import random
 import sys
+import glob
 
 class DeepMindControlEnv:
 
@@ -37,9 +38,28 @@ class DeepMindControlEnv:
     Version:
         dm-control 1.0.9
 
+    Step return:
+        state: env state (can be low dim or pixel)
+        reward: step reward (0 if reset)
+        done: False (agent never dies)
+        is_first: True if reset else False
+        is_last: False ! need to set True for last step
+
     """
 
-    def __init__(self, domain, task, img_size=(84, 84), mode="classic", history_frames=4, episode_saving_path=None, camera_id=0, action_repeat=1, norm_mean=(127.5, 127.5, 127.5), norm_std=(255, 255, 255)):
+    def __init__(
+            self, 
+            domain, 
+            task, 
+            img_size=(84, 84), 
+            mode="classic", 
+            history_frames=4, 
+            episode_saving_path=None, 
+            camera_id=0, 
+            action_repeat=1,
+            apply_random_background=False,
+            background_videos=None
+        ):
 
         # Mode
         assert mode in ["classic", "rgb", "grayscale"]
@@ -58,6 +78,11 @@ class DeepMindControlEnv:
             self.env = pixels.Wrapper(suite.load(self.domain, self.task), pixels_only=False, render_kwargs={"height": self.img_size[0], "width": self.img_size[1], "camera_id": self.camera_id})
         else:
             self.env = suite.load(self.domain, self.task)
+        self.apply_random_background = apply_random_background
+        if background_videos is not None:
+            self.background_videos = glob.glob(background_videos)
+        else:
+            self.background_videos = background_videos
 
         # episode_saving_path
         self.episode_saving_path = episode_saving_path
@@ -67,10 +92,31 @@ class DeepMindControlEnv:
 
         # Transform
         self.grayscale = torchvision.transforms.Grayscale() if self.mode == "grayscale" else nn.Identity()
-        self.normalize = torchvision.transforms.Normalize(mean=norm_mean, std=norm_std) # default [-0.5: 0.5]
 
         # FPS
         self.fps = 50
+
+    def reset_background(self):
+        # (T, C, H, W) load only first 20 seconds
+        self.background_video = torchvision.io.read_video(random.choice(self.background_videos), pts_unit="sec", start_pts=0.0, end_pts=20.0)[0].permute(0, 3, 1, 2)
+        # print(self.background_video.shape)
+        self.background_video = torchvision.transforms.functional.resize(self.background_video, size=self.img_size)
+        self.background_t = 0
+
+    def get_background(self, reset=False):
+
+        # Reset video
+        if reset:
+            self.reset_background()
+
+        background_video = self.background_video[self.background_t]
+        self.background_t += 1
+
+        # Reset if video too short
+        if self.background_t >= self.background_video.shape[0]:
+            self.reset_background()
+
+        return background_video
 
     def sample(self):
 
@@ -116,9 +162,8 @@ class DeepMindControlEnv:
         
         # Pixel Control
         elif self.mode in ["rgb", "grayscale"]:
-            obs_pixels_normalized = self.normalize(obs_pixels)
-            self.num_channels = obs_pixels_normalized.shape[0]
-            self.history = obs_pixels_normalized.repeat(self.history_frames, 1, 1)
+            self.num_channels = obs_pixels.shape[0]
+            self.history = obs_pixels.repeat(self.history_frames, 1, 1)
             state = self.history
         
         return AttrDict(state=state, reward=reward, done=done, is_first=is_first, is_last=is_last)
@@ -187,12 +232,12 @@ class DeepMindControlEnv:
         
         # Pixel COntrol RGB
         elif self.mode == "rgb":
-            self.history = torch.cat([self.history[3:], self.normalize(obs_pixels)], dim=0)
+            self.history = torch.cat([self.history[3:], obs_pixels], dim=0)
             state = self.history
         
         # Pixel Control Grayscale
         elif self.mode == "grayscale":
-            self.history = torch.cat([self.history[1:], self.normalize(obs_pixels)], dim=0)
+            self.history = torch.cat([self.history[1:], obs_pixels], dim=0)
             state = self.history
         
         return AttrDict(state=state, reward=reward, done=done, is_first=is_first, is_last=is_last)
@@ -201,9 +246,15 @@ class DeepMindControlEnv:
 
         # Extract Pixels and convert grayscale if needed
         if "pixels" in infos.observation:
-            obs_pixels = self.grayscale(torch.tensor(infos.observation["pixels"].copy(), dtype=torch.float32).permute(2, 0, 1))
+            obs_pixels = self.grayscale(torch.tensor(infos.observation["pixels"].copy()).permute(2, 0, 1)) # uint8, mem efficient for buffer
         else:
             obs_pixels = None
+
+        # Random Background
+        if self.apply_random_background:
+            assert self.mode == "rgb"
+            mask = torch.logical_and((obs_pixels[2] > obs_pixels[1]), (obs_pixels[2] > obs_pixels[0]))
+            obs_pixels = torch.where(mask.repeat(3, 1, 1), self.get_background(reset=infos.first()), obs_pixels)
 
         # Reward
         reward = infos.reward
