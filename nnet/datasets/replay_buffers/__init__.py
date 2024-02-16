@@ -14,3 +14,4 @@
 
 # Datasets
 from .dreamerv3_replay_buffer import DreamerV3ReplayBuffer
+from .dreamerv3_replay_buffer_noram import DreamerV3ReplayBufferNoRAM

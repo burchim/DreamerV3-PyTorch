@@ -17,4 +17,5 @@ av
 gym[atari]==0.19.0
 dm_control
 pyglet==1.5.27
+memory-maze
 # minerl

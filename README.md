@@ -139,6 +139,36 @@ We averaged the evaluation score over 10 episodes and used 3 seeds per experimen
 
 <img src="media/atari100k/atari100k-up_n_down.png" width="18%"/> <img src="media/atari100k/median.png" width="18%"/> <img src="media/atari100k/mean.png" width="18%"/>
 
+### Atari Scores (200M env steps)
+
+#### Scores
+
+| Task    | Random | Human | DreamerV3 | DreamerV3-PyTorch (this repo)  |
+| -------- | ------- | ------- | ------- | ------- |
+| Env Steps | - | - | 200M | 200M |
+| Breakout | 2 | 30 | 300 | 396 |
+
+#### Figures
+
+<img src="media/atari/atari-breakout.png" width="18%"/>
+
+### Memory Maze (100M env steps)
+
+Original work trains for 100M environment steps and uses DreamerV2, current results are for 10M steps.
+We used the same hyperparameters as Atari 200M experiments in the DreamerV3 paper.
+
+#### Scores
+
+| Task    | DreamerV2 | DreamerV3-PyTorch (this repo)  |
+| -------- | ------- | ------- |
+| Env Steps | 100M | 10M |
+| Memory 9x9 | 28.2 | 26.2 |
+
+#### Figures
+
+<img src="media/memory_maze/memory_maze-9x9.png" width="18%"/>
+
 ## Acknowledgments
 
 Official DreamerV3 Implementation: [https://github.com/danijar/dreamerv3](https://github.com/danijar/dreamerv3)
+Memory Maze (Evaluating Long-Term Memory in 3D Mazes): [https://github.com/jurgisp/memory-maze](https://github.com/jurgisp/memory-maze)
