@@ -171,4 +171,5 @@ We used the same hyperparameters as Atari 200M experiments in the DreamerV3 pape
 ## Acknowledgments
 
 Official DreamerV3 Implementation: [https://github.com/danijar/dreamerv3](https://github.com/danijar/dreamerv3)
+
 Memory Maze (Evaluating Long-Term Memory in 3D Mazes): [https://github.com/jurgisp/memory-maze](https://github.com/jurgisp/memory-maze)
